@@ -81,6 +81,12 @@ export default function App() {
   const [activeDesignId, setActiveDesignId] = useState<string | null>('dsg_001_cabinet');
   const [activeRevId, setActiveRevId] = useState<string | null>('REV-02');
   const [isDesignVaultOpen, setIsDesignVaultOpen] = useState<boolean>(false);
+  const [designVaultMode, setDesignVaultMode] = useState<'browse' | 'saveNew' | 'bumpRev'>('browse');
+
+  const handleOpenVault = (mode: 'browse' | 'saveNew' | 'bumpRev' = 'browse') => {
+    setDesignVaultMode(mode);
+    setIsDesignVaultOpen(true);
+  };
 
   useEffect(() => {
     try {
@@ -289,7 +295,7 @@ export default function App() {
         onOpenSpringTypeConfig={() => setIsTypeModalOpen(true)}
         onOpenBatchAutomation={() => setIsBatchModalOpen(true)}
         onOpenErpModal={() => setIsErpModalOpen(true)}
-        onOpenDesignVault={() => setIsDesignVaultOpen(true)}
+        onOpenDesignVault={() => handleOpenVault('browse')}
         onDownloadStep={handleDownloadStep}
         isValid={calc.isValid}
       />
@@ -314,8 +320,9 @@ export default function App() {
           {/* Quick status bar */}
           <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-400 shrink-0">
             <button
-              onClick={() => setIsDesignVaultOpen(true)}
+              onClick={() => handleOpenVault('browse')}
               className="px-2.5 py-1 rounded-lg bg-blue-950/80 border border-blue-700/80 hover:border-blue-500 text-blue-300 font-medium transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+              title="Dizayn kütüphanesini ve revizyon geçmişini aç"
             >
               <FolderGit2 className="w-3.5 h-3.5 text-blue-400" />
               <span>
@@ -384,7 +391,7 @@ export default function App() {
               onOpenSpringTypeConfig={() => setIsTypeModalOpen(true)}
               onOpenBatchAutomation={() => setIsBatchModalOpen(true)}
               onOpenErpModal={() => setIsErpModalOpen(true)}
-              onOpenDesignVault={() => setIsDesignVaultOpen(true)}
+              onOpenDesignVault={(mode) => handleOpenVault(mode || 'browse')}
               activeDesignName={currentActiveDesign?.name}
               activeRevCode={activeRevId || undefined}
             />
@@ -496,6 +503,7 @@ export default function App() {
         currentCalc={calc}
         availableFittings={availableFittings}
         availableTypes={availableTypes}
+        initialMode={designVaultMode}
         onLoadDesignRevision={handleLoadDesignRevision}
         onSaveNewDesign={handleSaveNewDesign}
         onUpdateDesign={handleUpdateDesign}

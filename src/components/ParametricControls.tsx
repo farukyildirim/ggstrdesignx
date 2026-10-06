@@ -18,6 +18,8 @@ import {
   ArrowRight,
   FolderGit2,
   CheckCircle,
+  Save,
+  GitCommit,
 } from 'lucide-react';
 
 interface ParametricControlsProps {
@@ -32,7 +34,7 @@ interface ParametricControlsProps {
   onOpenSpringTypeConfig: () => void;
   onOpenBatchAutomation: () => void;
   onOpenErpModal: () => void;
-  onOpenDesignVault?: () => void;
+  onOpenDesignVault?: (mode?: 'browse' | 'saveNew' | 'bumpRev') => void;
   activeDesignName?: string;
   activeRevCode?: string;
 }
@@ -89,35 +91,71 @@ export const ParametricControls: React.FC<ParametricControlsProps> = ({
           </div>
         </div>
 
-        {/* Design Library & Revision Vault Banner */}
+        {/* Design Library & Revision Vault Banner & Quick Save Buttons */}
         {onOpenDesignVault && (
-          <button
-            type="button"
-            onClick={onOpenDesignVault}
-            className="w-full p-2.5 rounded-xl bg-gradient-to-r from-blue-950/80 via-indigo-950/70 to-slate-950 border border-indigo-700/60 hover:border-indigo-500 flex items-center justify-between transition-all group shadow-sm cursor-pointer"
-          >
-            <div className="flex items-center gap-2.5 text-left">
-              <div className="p-1.5 rounded-lg bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 group-hover:scale-105 transition-transform">
-                <FolderGit2 className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-white">
-                    {activeDesignName || 'Dizayn Kütüphanesi & Revizyonlar'}
-                  </span>
-                  {activeRevCode && (
-                    <span className="text-[10px] font-mono px-1.5 py-0.2 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded font-bold">
-                      {activeRevCode}
-                    </span>
-                  )}
+          <div className="flex flex-col gap-2">
+            <div
+              className="w-full p-2.5 rounded-xl bg-gradient-to-r from-blue-950/80 via-indigo-950/70 to-slate-950 border border-indigo-700/60 flex items-center justify-between shadow-sm"
+            >
+              <button
+                type="button"
+                onClick={() => onOpenDesignVault('browse')}
+                className="flex items-center gap-2.5 text-left flex-1 min-w-0 cursor-pointer group"
+                title="Tasarım arşivini aç"
+              >
+                <div className="p-1.5 rounded-lg bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 group-hover:scale-105 transition-transform shrink-0">
+                  <FolderGit2 className="w-4 h-4" />
                 </div>
-                <span className="text-[11px] text-slate-400 block">
-                  Kayıtlı tasarımları çağırın, değiştirin veya yeni revizyon kaydedin
-                </span>
-              </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-white truncate">
+                      {activeDesignName || 'Dizayn Kütüphanesi & Arşiv'}
+                    </span>
+                    {activeRevCode && (
+                      <span className="text-[10px] font-mono px-1.5 py-0.2 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded font-bold shrink-0">
+                        {activeRevCode}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[11px] text-slate-400 block truncate">
+                    Arşivden çağır, karşılaştır veya revizyon takip et
+                  </span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onOpenDesignVault('browse')}
+                className="p-1.5 text-indigo-400 hover:text-white rounded-lg hover:bg-indigo-900/50 transition-colors cursor-pointer shrink-0 ml-1"
+                title="Dizayn Arşivini Aç"
+              >
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
-            <ArrowRight className="w-4 h-4 text-indigo-400 group-hover:translate-x-1 transition-transform shrink-0" />
-          </button>
+
+            {/* Direct Quick Save & Revision Buttons */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => onOpenDesignVault('saveNew')}
+                className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-950/70 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-700/70 hover:border-emerald-500 flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+                title="Mevcut ölçü ve parametreleri yeni bir dizayn olarak kaydet"
+              >
+                <Save className="w-3.5 h-3.5 text-emerald-400" />
+                <span>💾 Yeni Tasarım Kaydet</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onOpenDesignVault('bumpRev')}
+                className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-950/70 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-700/70 hover:border-indigo-500 flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+                title="Mevcut tasarıma yeni revizyon numarası ekle (örn. REV-02, REV-03)"
+              >
+                <GitCommit className="w-3.5 h-3.5 text-indigo-400" />
+                <span>⚡ Revizyon Yükselt</span>
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Automation & ERP Quick Action Hub */}
@@ -443,8 +481,8 @@ export const ParametricControls: React.FC<ParametricControlsProps> = ({
         </div>
       </div>
 
-      {/* Main Action Button */}
-      <div className="pt-2">
+      {/* Main Action Buttons */}
+      <div className="pt-2 flex flex-col gap-2">
         <button
           type="button"
           onClick={onGenerate}
@@ -457,6 +495,18 @@ export const ParametricControls: React.FC<ParametricControlsProps> = ({
         >
           <span>Renkli .STEP Montajı Oluştur ⚙️</span>
         </button>
+
+        {onOpenDesignVault && (
+          <button
+            type="button"
+            onClick={() => onOpenDesignVault('saveNew')}
+            className="w-full py-2.5 px-3 rounded-lg font-medium text-xs bg-slate-800 hover:bg-slate-750 text-emerald-300 border border-slate-700 hover:border-emerald-600/70 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-98"
+            title="Şu anki ölçüleri ve bağlantıları yeni bir dizayn olarak kütüphaneye kaydet"
+          >
+            <Save className="w-3.5 h-3.5 text-emerald-400" />
+            <span>💾 Bu Dizaynı Kütüphaneye Kaydet</span>
+          </button>
+        )}
       </div>
     </div>
   );

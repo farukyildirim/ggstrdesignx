@@ -40,6 +40,7 @@ interface DesignVaultModalProps {
   currentCalc: CalculationResult;
   availableFittings: EndFittingItem[];
   availableTypes: GasSpringTypeDefinition[];
+  initialMode?: 'browse' | 'saveNew' | 'bumpRev';
   onLoadDesignRevision: (design: SavedDesign, rev: DesignRevision) => void;
   onSaveNewDesign: (design: SavedDesign) => void;
   onUpdateDesign: (design: SavedDesign) => void;
@@ -57,6 +58,7 @@ export const DesignVaultModal: React.FC<DesignVaultModalProps> = ({
   currentCalc,
   availableFittings,
   availableTypes,
+  initialMode = 'browse',
   onLoadDesignRevision,
   onSaveNewDesign,
   onUpdateDesign,
@@ -67,7 +69,18 @@ export const DesignVaultModal: React.FC<DesignVaultModalProps> = ({
     activeDesignId || (savedDesigns[0]?.id || '')
   );
   const [searchQuery, setSearchQuery] = useState('');
-  const [modalMode, setModalMode] = useState<'browse' | 'saveNew' | 'bumpRev' | 'compare'>('browse');
+  const [modalMode, setModalMode] = useState<'browse' | 'saveNew' | 'bumpRev' | 'compare'>(initialMode);
+
+  // Sync mode when modal opens with a specific initialMode
+  React.useEffect(() => {
+    if (isOpen) {
+      setModalMode(initialMode || 'browse');
+      if (initialMode === 'saveNew') {
+        setNewDesignCode(`DSG-${new Date().getFullYear()}-${(savedDesigns.length + 1).toString().padStart(3, '0')}`);
+        setNewDesignName(`Amortisör Ø${currentParams.tubeOd}/${currentParams.rodOd} L=${currentParams.extLength} S=${currentParams.stroke} (${currentParams.forceN}N)`);
+      }
+    }
+  }, [isOpen, initialMode, currentParams]);
 
   // Compare mode state
   const [compareRevAId, setCompareRevAId] = useState<string>('');
