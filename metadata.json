@@ -1,0 +1,6 @@
+{
+  "name": "Parametrik Gazlı Amortisör CAD Motoru",
+  "description": "Renkli montaj destekli parametrik gazlı amortisör mühendislik hesaplama ve 3D CAD motoru. Canlı Three.js önizleme, dinamik strok simülasyonu, .STEP montajı ve .STL dışa aktarma.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
