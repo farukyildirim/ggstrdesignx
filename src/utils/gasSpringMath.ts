@@ -1,5 +1,17 @@
-import { GasSpringParams, CalculationResult, EndFittingItem, GasSpringTypeDefinition, ErpBomLine } from '../types/cad';
-import { DEFAULT_FITTINGS, DEFAULT_GAS_SPRING_TYPES } from './engineeringData';
+import {
+  GasSpringParams,
+  CalculationResult,
+  EndFittingItem,
+  GasSpringTypeDefinition,
+  ErpBomLine,
+  ErpStockItem,
+} from '../types/cad';
+import {
+  DEFAULT_FITTINGS,
+  DEFAULT_GAS_SPRING_TYPES,
+  DEFAULT_ERP_STOCK_ITEMS,
+  DEFAULT_BOM_ERP_MAPPINGS,
+} from './engineeringData';
 
 export function calculateGasSpringParams(
   params: GasSpringParams,
@@ -185,76 +197,122 @@ export function calculateGasSpringParams(
 export function generateErpBomLines(
   params: GasSpringParams,
   calc: CalculationResult,
-  availableFittings: EndFittingItem[] = DEFAULT_FITTINGS
+  availableFittings: EndFittingItem[] = DEFAULT_FITTINGS,
+  customStockMap?: Record<string, string>,
+  stockCatalog: ErpStockItem[] = DEFAULT_ERP_STOCK_ITEMS
 ): ErpBomLine[] {
   const rodFitting = availableFittings.find((f) => f.id === params.rodFittingId) || availableFittings[0];
   const tubeFitting = availableFittings.find((f) => f.id === params.tubeFittingId) || availableFittings[0];
   const { tubeOd, rodOd } = params;
   const isStainless = calc.springType.formulaType === 'stainless';
 
-  return [
+  // Base raw lines
+  const rawLines = [
     {
       itemCode: `RAW-TUBE-${tubeOd}-${calc.tubeHeight.toFixed(0)}`,
+      matchPrefix: `RAW-TUBE-${tubeOd}`,
       description: `Hassas Dikişsiz Silindir Borusu Ø${tubeOd} mm (L=${calc.tubeHeight.toFixed(0)}mm)`,
       quantity: 1,
       unit: 'ADET',
       material: isStainless ? 'AISI 316L (1.4404) Dikişsiz Paslanmaz' : 'St 37-2BK EN 10305-1 Dikişsiz Çelik',
       dimensions: `Ø${tubeOd} × ${calc.tubeHeight.toFixed(0)} mm`,
-      componentType: 'RAW_MATERIAL',
+      componentType: 'RAW_MATERIAL' as const,
     },
     {
       itemCode: `RAW-ROD-${rodOd}-${calc.rodHeight.toFixed(0)}`,
+      matchPrefix: `RAW-ROD-${rodOd}`,
       description: `Taşlanmış Sert Kromlu Piston Mili Ø${rodOd} mm (L=${calc.rodHeight.toFixed(0)}mm)`,
       quantity: 1,
       unit: 'ADET',
       material: isStainless ? 'AISI 316 / 1.4401 Taşlanmış Paslanmaz Mil' : 'C45 / 20MnV6 Taşlanmış Sert Krom (Ra ≤ 0.1μm)',
       dimensions: `Ø${rodOd} × ${calc.rodHeight.toFixed(0)} mm`,
-      componentType: 'RAW_MATERIAL',
+      componentType: 'RAW_MATERIAL' as const,
     },
     {
       itemCode: `FIT-ROD-${rodFitting.id.toUpperCase()}`,
+      matchPrefix: `FIT-ROD-${rodFitting.id.toUpperCase()}`,
       description: `Mil Ucu: ${rodFitting.name}`,
       quantity: 1,
       unit: 'ADET',
       material: rodFitting.material,
       dimensions: `L=${rodFitting.offsetLenMm}mm ${rodFitting.holeDiaMm ? `Ø${rodFitting.holeDiaMm}mm delik` : ''} ${rodFitting.threadSize || ''}`,
-      componentType: 'PURCHASED',
+      componentType: 'PURCHASED' as const,
     },
     {
       itemCode: `FIT-TUBE-${tubeFitting.id.toUpperCase()}`,
+      matchPrefix: `FIT-TUBE-${tubeFitting.id.toUpperCase()}`,
       description: `Gövde Ucu: ${tubeFitting.name}`,
       quantity: 1,
       unit: 'ADET',
       material: tubeFitting.material,
       dimensions: `L=${tubeFitting.offsetLenMm}mm ${tubeFitting.holeDiaMm ? `Ø${tubeFitting.holeDiaMm}mm delik` : ''} ${tubeFitting.threadSize || ''}`,
-      componentType: 'PURCHASED',
+      componentType: 'PURCHASED' as const,
     },
     {
       itemCode: `SEAL-KIT-${tubeOd}-${rodOd}`,
+      matchPrefix: `SEAL-KIT-${tubeOd}-${rodOd}`,
       description: `Yüksek Basınç Sızdırmazlık & Kılavuz Burç Paketi Ø${tubeOd}/Ø${rodOd}`,
       quantity: 1,
       unit: 'TAKIM',
       material: isStainless ? 'FKM (Viton) + Karbonlu PTFE Kılavuz' : 'Poliüretan NBR Çift Dudaklı Keçe + PTFE Kılavuz',
       dimensions: `Ø${tubeOd} / Ø${rodOd} mm Standart`,
-      componentType: 'PURCHASED',
+      componentType: 'PURCHASED' as const,
     },
     {
       itemCode: `VALVE-PISTON-${rodOd}`,
+      matchPrefix: `VALVE-PISTON-${rodOd}`,
       description: `${calc.springType.formulaType === 'lockable' ? 'Blokaj Baypas Kontrol Subabı' : 'Dinamik Orifis Sönümleme Piston Başı'}`,
       quantity: 1,
       unit: 'ADET',
       material: 'CuZn39Pb3 Pirinç / Sinter Bronz',
       dimensions: `Ø${rodOd} Mil Geçişli`,
-      componentType: 'SEMI_FINISHED',
+      componentType: 'SEMI_FINISHED' as const,
     },
     {
       itemCode: `GAS-N2-CHARGE-${Math.round(calc.requiredPressureBar)}BAR`,
+      matchPrefix: 'GAS-N2-CHARGE',
       description: `Yüksek Saflıkta Azot Gazı Dolumu (%99.99 N2)`,
       quantity: Math.round(calc.requiredPressureBar),
       unit: 'BAR',
       material: 'Azot Gazı (N2) + ISO VG 15 Hidrolik Yağ',
       dimensions: `P1 = ${calc.requiredPressureBar.toFixed(1)} Bar (${calc.springType.oilDampingRatio * 100}% Yağ Hacmi)`,
-      componentType: 'GAS_CHARGE',
+      componentType: 'GAS_CHARGE' as const,
     },
   ];
+
+  return rawLines.map((line) => {
+    // 1. Check custom override
+    let mappedErpCode = customStockMap?.[line.itemCode] || customStockMap?.[line.matchPrefix];
+
+    // 2. Check default mapping rules
+    if (!mappedErpCode) {
+      const rule = DEFAULT_BOM_ERP_MAPPINGS.find(
+        (m) => line.itemCode.startsWith(m.cadItemPrefix) || line.matchPrefix.startsWith(m.cadItemPrefix)
+      );
+      if (rule) {
+        mappedErpCode = rule.erpStockCode;
+      }
+    }
+
+    // Fallback: look up in stockCatalog directly
+    const stockItem = mappedErpCode ? stockCatalog.find((s) => s.stockCode === mappedErpCode) : undefined;
+
+    const finalErpCode = mappedErpCode || `STK-${line.itemCode}`;
+    const finalErpName = stockItem ? stockItem.stockName : line.description;
+    const isMatched = Boolean(stockItem);
+
+    return {
+      itemCode: line.itemCode,
+      erpStockCode: finalErpCode,
+      erpStockName: finalErpName,
+      description: line.description,
+      quantity: line.quantity,
+      unit: stockItem?.unit || line.unit,
+      material: line.material,
+      dimensions: line.dimensions,
+      componentType: line.componentType,
+      isMatched,
+      stockAvailable: stockItem?.inStockQty,
+    };
+  });
 }

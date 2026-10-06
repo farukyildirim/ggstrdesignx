@@ -1,4 +1,4 @@
-import { EndFittingItem, GasSpringTypeDefinition, ErpMssqlConfig, SavedDesign } from '../types/cad';
+import { EndFittingItem, GasSpringTypeDefinition, ErpMssqlConfig, SavedDesign, ErpStockItem, BomErpMappingRule } from '../types/cad';
 
 export const DEFAULT_FITTINGS: EndFittingItem[] = [
   {
@@ -386,3 +386,82 @@ export const DEFAULT_ERP_CONFIG: ErpMssqlConfig = {
   autoSync: false,
   status: 'idle',
 };
+
+export const DEFAULT_ERP_STOCK_ITEMS: ErpStockItem[] = [
+  // Borular (Tubes)
+  { stockCode: '150.01.0015', stockName: 'Ø15x1.25mm Hassas Soğuk Çekme Dikişsiz Boru St 37-2BK', stockGroup: 'BORU', unit: 'METRE', inStockQty: 480, priceTry: 85 },
+  { stockCode: '150.01.0018', stockName: 'Ø18x1.50mm Hassas Soğuk Çekme Dikişsiz Boru St 37-2BK', stockGroup: 'BORU', unit: 'METRE', inStockQty: 1250, priceTry: 110 },
+  { stockCode: '150.01.0022', stockName: 'Ø22x1.50mm Hassas Soğuk Çekme Dikişsiz Boru St 37-2BK', stockGroup: 'BORU', unit: 'METRE', inStockQty: 890, priceTry: 145 },
+  { stockCode: '150.01.0028', stockName: 'Ø28x1.75mm Hassas Soğuk Çekme Dikişsiz Boru St 37-2BK', stockGroup: 'BORU', unit: 'METRE', inStockQty: 620, priceTry: 210 },
+  { stockCode: '150.01.0040', stockName: 'Ø40x2.25mm Ağır Hizmet Dikişsiz Silindir Borusu St 52', stockGroup: 'BORU', unit: 'METRE', inStockQty: 340, priceTry: 380 },
+  { stockCode: '150.02.0018', stockName: 'Ø18x1.75mm Dikişsiz Paslanmaz Çelik Boru AISI 316L', stockGroup: 'BORU', unit: 'METRE', inStockQty: 180, priceTry: 320 },
+  { stockCode: '150.02.0022', stockName: 'Ø22x2.00mm Dikişsiz Paslanmaz Çelik Boru AISI 316L', stockGroup: 'BORU', unit: 'METRE', inStockQty: 140, priceTry: 450 },
+
+  // Miller (Piston Rods)
+  { stockCode: '152.01.0006', stockName: 'Ø6mm C45 İslahlı Sert Krom Kaplı Piston Mili (Ra≤0.1)', stockGroup: 'MIL', unit: 'METRE', inStockQty: 350, priceTry: 75 },
+  { stockCode: '152.01.0008', stockName: 'Ø8mm C45 İslahlı Sert Krom Kaplı Piston Mili (Ra≤0.1)', stockGroup: 'MIL', unit: 'METRE', inStockQty: 1400, priceTry: 95 },
+  { stockCode: '152.01.0010', stockName: 'Ø10mm C45 İslahlı Sert Krom Kaplı Piston Mili (Ra≤0.1)', stockGroup: 'MIL', unit: 'METRE', inStockQty: 920, priceTry: 130 },
+  { stockCode: '152.01.0014', stockName: 'Ø14mm 20MnV6 Taşlanmış Sert Kromlu Piston Mili', stockGroup: 'MIL', unit: 'METRE', inStockQty: 540, priceTry: 220 },
+  { stockCode: '152.01.0020', stockName: 'Ø20mm 20MnV6 Taşlanmış Sert Kromlu Piston Mili', stockGroup: 'MIL', unit: 'METRE', inStockQty: 290, priceTry: 390 },
+  { stockCode: '152.02.0008', stockName: 'Ø8mm AISI 316 Paslanmaz Çelik Taşlanmış Parlak Mil', stockGroup: 'MIL', unit: 'METRE', inStockQty: 220, priceTry: 260 },
+  { stockCode: '152.02.0010', stockName: 'Ø10mm AISI 316 Paslanmaz Çelik Taşlanmış Parlak Mil', stockGroup: 'MIL', unit: 'METRE', inStockQty: 160, priceTry: 340 },
+
+  // Uç Bağlantıları (Fittings)
+  { stockCode: '170.01.0008', stockName: 'Gözlü Mafsal (Eyelet) Ø8mm Delik - Alüminyum 6082-T6', stockGroup: 'MAFSAL', unit: 'ADET', inStockQty: 2500, priceTry: 35 },
+  { stockCode: '170.01.0010', stockName: 'Bilyalı Mafsal (Ball Joint) DIN 71802 M8 - Galvanizli Çelik', stockGroup: 'MAFSAL', unit: 'ADET', inStockQty: 1800, priceTry: 42 },
+  { stockCode: '170.01.0012', stockName: 'Çatal Mafsal (Clevis Fork) DIN 71752 M8x16 - Çinko Kaplı', stockGroup: 'MAFSAL', unit: 'ADET', inStockQty: 950, priceTry: 48 },
+  { stockCode: '170.01.0015', stockName: 'Düz Dişli Mil Ucu Saplama M8x1.25x15mm C45', stockGroup: 'MAFSAL', unit: 'ADET', inStockQty: 3200, priceTry: 18 },
+  { stockCode: '170.01.0018', stockName: 'Düz Dişli Mil Ucu Saplama M10x1.50x18mm C45', stockGroup: 'MAFSAL', unit: 'ADET', inStockQty: 1600, priceTry: 24 },
+  { stockCode: '170.01.0020', stockName: 'Flanşlı Kare Montaj Başlığı St 37 40x40mm', stockGroup: 'MAFSAL', unit: 'ADET', inStockQty: 450, priceTry: 65 },
+
+  // Sızdırmazlık Keçe Paketleri (Seals)
+  { stockCode: '180.01.1506', stockName: 'Sızdırmazlık Paketi Ø15/6mm (Poliüretan NBR + PTFE Kılavuz)', stockGroup: 'KECE', unit: 'TAKIM', inStockQty: 850, priceTry: 60 },
+  { stockCode: '180.01.1808', stockName: 'Sızdırmazlık Paketi Ø18/8mm (Poliüretan NBR + PTFE Kılavuz)', stockGroup: 'KECE', unit: 'TAKIM', inStockQty: 3100, priceTry: 72 },
+  { stockCode: '180.01.2210', stockName: 'Sızdırmazlık Paketi Ø22/10mm (Poliüretan NBR + PTFE Kılavuz)', stockGroup: 'KECE', unit: 'TAKIM', inStockQty: 1900, priceTry: 88 },
+  { stockCode: '180.01.2814', stockName: 'Sızdırmazlık Paketi Ø28/14mm (Ağır Hizmet NBR + Çift Kılavuz)', stockGroup: 'KECE', unit: 'TAKIM', inStockQty: 750, priceTry: 125 },
+  { stockCode: '180.01.4020', stockName: 'Sızdırmazlık Paketi Ø40/20mm (Yüksek Basınç Viton/PTFE)', stockGroup: 'KECE', unit: 'TAKIM', inStockQty: 320, priceTry: 240 },
+
+  // Piston Başı ve Valfler
+  { stockCode: '185.01.0008', stockName: 'Dinamik Orifisli Sönümleme Piston Başı Ø8mm Mil', stockGroup: 'VALF', unit: 'ADET', inStockQty: 2400, priceTry: 28 },
+  { stockCode: '185.01.0010', stockName: 'Dinamik Orifisli Sönümleme Piston Başı Ø10mm Mil', stockGroup: 'VALF', unit: 'ADET', inStockQty: 1500, priceTry: 36 },
+  { stockCode: '185.02.0010', stockName: 'Kilitlenebilir Blokaj Baypas Kontrol Subabı Ø10mm', stockGroup: 'VALF', unit: 'ADET', inStockQty: 400, priceTry: 165 },
+
+  // Gaz ve Yağ
+  { stockCode: '190.01.0001', stockName: 'Saf Azot Gazı (N2 %99.999 Saflıkta Dolum Gazı)', stockGroup: 'GAZ_YAG', unit: 'BAR', inStockQty: 85000, priceTry: 0.8 },
+  { stockCode: '190.02.0001', stockName: 'Özel Amortisör Hidrolik Sönümleme Yağı ISO VG 15', stockGroup: 'GAZ_YAG', unit: 'LITRE', inStockQty: 450, priceTry: 180 },
+];
+
+export const DEFAULT_BOM_ERP_MAPPINGS: BomErpMappingRule[] = [
+  { id: 'map_t_15', cadItemPrefix: 'RAW-TUBE-15', erpStockCode: '150.01.0015', erpStockName: 'Ø15x1.25mm Dikişsiz Boru' },
+  { id: 'map_t_18', cadItemPrefix: 'RAW-TUBE-18', erpStockCode: '150.01.0018', erpStockName: 'Ø18x1.50mm Dikişsiz Boru' },
+  { id: 'map_t_22', cadItemPrefix: 'RAW-TUBE-22', erpStockCode: '150.01.0022', erpStockName: 'Ø22x1.50mm Dikişsiz Boru' },
+  { id: 'map_t_28', cadItemPrefix: 'RAW-TUBE-28', erpStockCode: '150.01.0028', erpStockName: 'Ø28x1.75mm Dikişsiz Boru' },
+  { id: 'map_t_40', cadItemPrefix: 'RAW-TUBE-40', erpStockCode: '150.01.0040', erpStockName: 'Ø40x2.25mm Silindir Borusu' },
+
+  { id: 'map_r_6', cadItemPrefix: 'RAW-ROD-6', erpStockCode: '152.01.0006', erpStockName: 'Ø6mm Sert Krom Kaplı Mil' },
+  { id: 'map_r_8', cadItemPrefix: 'RAW-ROD-8', erpStockCode: '152.01.0008', erpStockName: 'Ø8mm Sert Krom Kaplı Mil' },
+  { id: 'map_r_10', cadItemPrefix: 'RAW-ROD-10', erpStockCode: '152.01.0010', erpStockName: 'Ø10mm Sert Krom Kaplı Mil' },
+  { id: 'map_r_14', cadItemPrefix: 'RAW-ROD-14', erpStockCode: '152.01.0014', erpStockName: 'Ø14mm Sert Kromlu Mil' },
+  { id: 'map_r_20', cadItemPrefix: 'RAW-ROD-20', erpStockCode: '152.01.0020', erpStockName: 'Ø20mm Sert Kromlu Mil' },
+
+  { id: 'map_f_eye', cadItemPrefix: 'FIT-ROD-FITTING_EYELET_8', erpStockCode: '170.01.0008', erpStockName: 'Gözlü Mafsal Ø8mm' },
+  { id: 'map_f_ball', cadItemPrefix: 'FIT-ROD-FITTING_BALL_JOINT_M8', erpStockCode: '170.01.0010', erpStockName: 'Bilyalı Mafsal M8' },
+  { id: 'map_f_clev', cadItemPrefix: 'FIT-ROD-FITTING_CLEVIS_FORK', erpStockCode: '170.01.0012', erpStockName: 'Çatal Mafsal DIN 71752 M8' },
+  { id: 'map_f_th8', cadItemPrefix: 'FIT-ROD-FITTING_THREADED_M8', erpStockCode: '170.01.0015', erpStockName: 'Düz Dişli Mil Ucu M8' },
+  { id: 'map_f_th10', cadItemPrefix: 'FIT-ROD-FITTING_THREADED_M10', erpStockCode: '170.01.0018', erpStockName: 'Düz Dişli Mil Ucu M10' },
+
+  { id: 'map_ft_eye', cadItemPrefix: 'FIT-TUBE-FITTING_EYELET_8', erpStockCode: '170.01.0008', erpStockName: 'Gözlü Mafsal Ø8mm' },
+  { id: 'map_ft_ball', cadItemPrefix: 'FIT-TUBE-FITTING_BALL_JOINT_M8', erpStockCode: '170.01.0010', erpStockName: 'Bilyalı Mafsal M8' },
+  { id: 'map_ft_clev', cadItemPrefix: 'FIT-TUBE-FITTING_CLEVIS_FORK', erpStockCode: '170.01.0012', erpStockName: 'Çatal Mafsal DIN 71752 M8' },
+
+  { id: 'map_s_15_6', cadItemPrefix: 'SEAL-KIT-15-6', erpStockCode: '180.01.1506', erpStockName: 'Sızdırmazlık Paketi Ø15/6' },
+  { id: 'map_s_18_8', cadItemPrefix: 'SEAL-KIT-18-8', erpStockCode: '180.01.1808', erpStockName: 'Sızdırmazlık Paketi Ø18/8' },
+  { id: 'map_s_22_10', cadItemPrefix: 'SEAL-KIT-22-10', erpStockCode: '180.01.2210', erpStockName: 'Sızdırmazlık Paketi Ø22/10' },
+  { id: 'map_s_28_14', cadItemPrefix: 'SEAL-KIT-28-14', erpStockCode: '180.01.2814', erpStockName: 'Sızdırmazlık Paketi Ø28/14' },
+  { id: 'map_s_40_20', cadItemPrefix: 'SEAL-KIT-40-20', erpStockCode: '180.01.4020', erpStockName: 'Sızdırmazlık Paketi Ø40/20' },
+
+  { id: 'map_v_8', cadItemPrefix: 'VALVE-PISTON-8', erpStockCode: '185.01.0008', erpStockName: 'Dinamik Orifisli Piston Başı Ø8' },
+  { id: 'map_v_10', cadItemPrefix: 'VALVE-PISTON-10', erpStockCode: '185.01.0010', erpStockName: 'Dinamik Orifisli Piston Başı Ø10' },
+
+  { id: 'map_gas_n2', cadItemPrefix: 'GAS-N2-CHARGE', erpStockCode: '190.01.0001', erpStockName: 'Saf Azot Gazı N2 Dolumu' },
+];

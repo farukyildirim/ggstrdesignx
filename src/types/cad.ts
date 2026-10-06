@@ -132,14 +132,35 @@ export interface ErpMssqlConfig {
   status: 'idle' | 'connected' | 'error';
 }
 
+export interface ErpStockItem {
+  stockCode: string; // ERP Stok Kodu örn. "150.01.0018"
+  stockName: string; // ERP Stok Kartı Adı örn. "Ø18x1.5mm Soğuk Çekme Dikişsiz Boru St 37-2BK"
+  stockGroup: 'BORU' | 'MIL' | 'MAFSAL' | 'KECE' | 'VALF' | 'GAZ_YAG';
+  unit: string; // "METRE", "ADET", "TAKIM", "BAR", "LITRE"
+  inStockQty: number; // Depo Mevcut Miktarı
+  leadTimeDays?: number; // Tedarik Süresi (gün)
+  priceTry?: number; // Birim Maliyet (TL)
+}
+
+export interface BomErpMappingRule {
+  id: string;
+  cadItemPrefix: string; // örn: "RAW-TUBE-18", "FIT-ROD-FITTING_EYELET_8"
+  erpStockCode: string; // örn: "150.01.0018"
+  erpStockName: string; // örn: "Ø18x1.5mm Çelik Boru"
+}
+
 export interface ErpBomLine {
-  itemCode: string;
+  itemCode: string; // CAD BOM Kodu (örn. RAW-TUBE-18-160)
+  erpStockCode: string; // Eşleşen ERP Stok Kodu (örn. 150.01.0018)
+  erpStockName: string; // Eşleşen ERP Stok Açıklaması
   description: string;
   quantity: number;
   unit: string;
   material: string;
   dimensions: string;
   componentType: 'RAW_MATERIAL' | 'SEMI_FINISHED' | 'PURCHASED' | 'GAS_CHARGE';
+  isMatched: boolean; // ERP Stok Kartı ile eşleşti mi?
+  stockAvailable?: number; // ERP Depo mevcudu
 }
 
 export interface ErpTransferRecord {

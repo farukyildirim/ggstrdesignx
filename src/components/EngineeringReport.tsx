@@ -12,12 +12,15 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { GasSpringParams, CalculationResult } from '../types/cad';
-import { Copy, Check, FileText, Wrench, ShieldAlert, Cpu, Gauge, Activity, Info } from 'lucide-react';
+import { GasSpringParams, CalculationResult, EndFittingItem } from '../types/cad';
+import { generateErpBomLines } from '../utils/gasSpringMath';
+import { Copy, Check, FileText, Wrench, ShieldAlert, Cpu, Gauge, Activity, Info, Database, Layers } from 'lucide-react';
 
 interface EngineeringReportProps {
   params: GasSpringParams;
   calc: CalculationResult;
+  availableFittings?: EndFittingItem[];
+  onOpenErpModal?: () => void;
 }
 
 /**
@@ -377,7 +380,12 @@ export const InternalGasPressureChart: React.FC<{ params: GasSpringParams; calc:
   );
 };
 
-export const EngineeringReport: React.FC<EngineeringReportProps> = ({ params, calc }) => {
+export const EngineeringReport: React.FC<EngineeringReportProps> = ({
+  params,
+  calc,
+  availableFittings,
+  onOpenErpModal,
+}) => {
   const [activeTab, setActiveTab] = useState<'report' | 'kinematics' | 'bom'>('report');
   const [copiedPartNumber, setCopiedPartNumber] = useState(false);
 
@@ -612,88 +620,86 @@ export const EngineeringReport: React.FC<EngineeringReportProps> = ({ params, ca
         </div>
       )}
 
-      {/* Tab 3: BOM / Malzeme Listesi */}
-      {activeTab === 'bom' && (
-        <div className="flex flex-col gap-3">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider">
-                  <th className="py-2 px-2.5">Parça Adı</th>
-                  <th className="py-2 px-2.5">Malzeme & Standart</th>
-                  <th className="py-2 px-2.5">Boyut (mm)</th>
-                  <th className="py-2 px-2.5">Renk / Kaplama</th>
-                  <th className="py-2 px-2.5 text-right">Adet</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-sans text-slate-300">
-                <tr>
-                  <td className="py-2 px-2.5 font-medium text-white">Silindir Gövde (Outer Tube)</td>
-                  <td className="py-2 px-2.5">St 37-2BK Hassas Dikişsiz Çelik Boru</td>
-                  <td className="py-2 px-2.5 font-mono">Ø{params.tubeOd} × {calc.tubeHeight.toFixed(0)} mm</td>
-                  <td className="py-2 px-2.5">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-neutral-900 border border-neutral-600" />
-                      Siyah Elektrostatik Toz Boya
-                    </span>
-                  </td>
-                  <td className="py-2 px-2.5 text-right font-mono">1</td>
-                </tr>
-                <tr>
-                  <td className="py-2 px-2.5 font-medium text-white">Piston Mili (Piston Rod)</td>
-                  <td className="py-2 px-2.5">C45 / 20MnV6 Taşlanmış Sert Kromlu Çelik</td>
-                  <td className="py-2 px-2.5 font-mono">Ø{params.rodOd} × {calc.rodHeight.toFixed(0)} mm</td>
-                  <td className="py-2 px-2.5">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-400" />
-                      Parlak Sert Krom (Ra ≤ 0.1μm)
-                    </span>
-                  </td>
-                  <td className="py-2 px-2.5 text-right font-mono">1</td>
-                </tr>
-                <tr>
-                  <td className="py-2 px-2.5 font-medium text-white">Gövde Mafsalı (Tube End)</td>
-                  <td className="py-2 px-2.5">Alüminyum 6082-T6 / Çelik Dövme Uç Elemanı</td>
-                  <td className="py-2 px-2.5 font-mono">+{calc.tubeFittingOffset} mm boy payı</td>
-                  <td className="py-2 px-2.5">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-blue-600 border border-blue-400" />
-                      Anodize Mavi / Kaplamalı
-                    </span>
-                  </td>
-                  <td className="py-2 px-2.5 text-right font-mono">1</td>
-                </tr>
-                <tr>
-                  <td className="py-2 px-2.5 font-medium text-white">Mil Mafsalı (Rod End)</td>
-                  <td className="py-2 px-2.5">Alüminyum 6082-T6 / Çelik Dövme Uç Elemanı</td>
-                  <td className="py-2 px-2.5 font-mono">+{calc.rodFittingOffset} mm boy payı</td>
-                  <td className="py-2 px-2.5">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-blue-600 border border-blue-400" />
-                      Anodize Mavi / Kaplamalı
-                    </span>
-                  </td>
-                  <td className="py-2 px-2.5 text-right font-mono">1</td>
-                </tr>
-                <tr>
-                  <td className="py-2 px-2.5 font-medium text-white">Sızdırmazlık & Kılavuz Paketi</td>
-                  <td className="py-2 px-2.5">Poliüretan / NBR Çift Dudaklı Keçe + PTFE Kılavuz</td>
-                  <td className="py-2 px-2.5 font-mono">Ø{params.tubeOd} / Ø{params.rodOd} Standart</td>
-                  <td className="py-2 px-2.5">Doğal Polimer</td>
-                  <td className="py-2 px-2.5 text-right font-mono">1</td>
-                </tr>
-                <tr>
-                  <td className="py-2 px-2.5 font-medium text-white">Dolum Akışkanı (Gaz & Yağ)</td>
-                  <td className="py-2 px-2.5">Saf Azot Gazı (N2 %99.99) + ISO VG 15 Hidrolik Yağ</td>
-                  <td className="py-2 px-2.5 font-mono">P = {calc.requiredPressureBar.toFixed(1)} Bar</td>
-                  <td className="py-2 px-2.5">Şeffaf / Yeşil</td>
-                  <td className="py-2 px-2.5 text-right font-mono">~15 ml</td>
-                </tr>
-              </tbody>
-            </table>
+      {/* Tab 3: BOM / Malzeme Listesi & ERP Stok Kodları */}
+      {activeTab === 'bom' && (() => {
+        const bomLines = generateErpBomLines(params, calc, availableFittings);
+        return (
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-950 p-3 rounded-lg border border-slate-800">
+              <div>
+                <span className="text-xs font-semibold text-white flex items-center gap-2">
+                  <Database className="w-4 h-4 text-emerald-400" />
+                  <span>İmalat Ürün Ağacı (BOM) & ERP Stok Kodu Eşleşmesi</span>
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  Toplam {bomLines.length} kalem alt bileşen kurumsal ERP stok kodları ile ilişkilendirilmiştir.
+                </span>
+              </div>
+
+              {onOpenErpModal && (
+                <button
+                  type="button"
+                  onClick={onOpenErpModal}
+                  className="px-2.5 py-1 text-xs font-semibold text-emerald-300 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-800/80 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto"
+                >
+                  <Database className="w-3.5 h-3.5" />
+                  <span>ERP Stok Eşleştirme Masası ⚙️</span>
+                </button>
+              )}
+            </div>
+
+            <div className="overflow-x-auto bg-slate-950 rounded-xl border border-slate-800">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider bg-slate-900/60 font-mono">
+                    <th className="py-2.5 px-3">Bileşen Tanımı</th>
+                    <th className="py-2.5 px-3 text-cyan-300">Eşleşen ERP Stok Kodu</th>
+                    <th className="py-2.5 px-3">CAD BOM Kodu</th>
+                    <th className="py-2.5 px-3">Boyutlar / Standart</th>
+                    <th className="py-2.5 px-3 text-right">Miktar</th>
+                    <th className="py-2.5 px-3 text-center">Durum</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 font-sans text-slate-300">
+                  {bomLines.map((line) => (
+                    <tr key={line.itemCode} className="hover:bg-slate-900/40 transition-colors">
+                      <td className="py-2.5 px-3 font-medium text-white max-w-[200px]">
+                        <span className="block truncate">{line.description}</span>
+                        <span className="text-[10px] text-slate-400 font-normal">{line.material}</span>
+                      </td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-cyan-300 whitespace-nowrap">
+                        <span className="bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/50">
+                          {line.erpStockCode}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-slate-400 text-[11px] whitespace-nowrap">
+                        {line.itemCode}
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-[11px] text-slate-300 whitespace-nowrap">
+                        {line.dimensions}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-white whitespace-nowrap">
+                        {line.quantity} {line.unit}
+                      </td>
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        {line.isMatched ? (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-medium">
+                            ✓ ERP Eşleşti
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-medium">
+                            Otomatik Kod
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
