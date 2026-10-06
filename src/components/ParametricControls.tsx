@@ -16,6 +16,8 @@ import {
   Database,
   Plus,
   ArrowRight,
+  FolderGit2,
+  CheckCircle,
 } from 'lucide-react';
 
 interface ParametricControlsProps {
@@ -30,6 +32,9 @@ interface ParametricControlsProps {
   onOpenSpringTypeConfig: () => void;
   onOpenBatchAutomation: () => void;
   onOpenErpModal: () => void;
+  onOpenDesignVault?: () => void;
+  activeDesignName?: string;
+  activeRevCode?: string;
 }
 
 const TUBE_OD_OPTIONS = [15, 18, 22, 28, 40];
@@ -47,6 +52,9 @@ export const ParametricControls: React.FC<ParametricControlsProps> = ({
   onOpenSpringTypeConfig,
   onOpenBatchAutomation,
   onOpenErpModal,
+  onOpenDesignVault,
+  activeDesignName,
+  activeRevCode,
 }) => {
   const { tubeOd, rodOd, stroke, extLength, forceN, rodFittingId, tubeFittingId, springTypeId } = params;
 
@@ -62,9 +70,9 @@ export const ParametricControls: React.FC<ParametricControlsProps> = ({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col gap-6">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col gap-5">
       {/* Top Header & Fast Navigation Tools */}
-      <div className="flex flex-col gap-3 pb-4 border-b border-slate-800">
+      <div className="flex flex-col gap-3 pb-3 border-b border-slate-800">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-slate-100 flex items-center gap-2">
             <span>⚙️</span> Parametrik CAD Motoru
@@ -72,7 +80,7 @@ export const ParametricControls: React.FC<ParametricControlsProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={onReset}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors px-2 py-1 rounded hover:bg-slate-800"
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors px-2 py-1 rounded hover:bg-slate-800 cursor-pointer"
               title="Varsayılan değerlere dön"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -81,18 +89,49 @@ export const ParametricControls: React.FC<ParametricControlsProps> = ({
           </div>
         </div>
 
+        {/* Design Library & Revision Vault Banner */}
+        {onOpenDesignVault && (
+          <button
+            type="button"
+            onClick={onOpenDesignVault}
+            className="w-full p-2.5 rounded-xl bg-gradient-to-r from-blue-950/80 via-indigo-950/70 to-slate-950 border border-indigo-700/60 hover:border-indigo-500 flex items-center justify-between transition-all group shadow-sm cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5 text-left">
+              <div className="p-1.5 rounded-lg bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 group-hover:scale-105 transition-transform">
+                <FolderGit2 className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-white">
+                    {activeDesignName || 'Dizayn Kütüphanesi & Revizyonlar'}
+                  </span>
+                  {activeRevCode && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded font-bold">
+                      {activeRevCode}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[11px] text-slate-400 block">
+                  Kayıtlı tasarımları çağırın, değiştirin veya yeni revizyon kaydedin
+                </span>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-indigo-400 group-hover:translate-x-1 transition-transform shrink-0" />
+          </button>
+        )}
+
         {/* Automation & ERP Quick Action Hub */}
-        <div className="grid grid-cols-2 gap-2 pt-1">
+        <div className="grid grid-cols-2 gap-2 pt-0.5">
           <button
             type="button"
             onClick={onOpenBatchAutomation}
             className="px-3 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-cyan-950 to-blue-950 hover:from-cyan-900 hover:to-blue-900 text-cyan-300 border border-cyan-800/60 flex items-center justify-between transition-all shadow-sm active:scale-95 cursor-pointer"
           >
-            <span className="flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-cyan-400" />
-              <span>Toplu Dizayn Otomasyonu</span>
+            <span className="flex items-center gap-1.5 truncate">
+              <Layers className="w-4 h-4 text-cyan-400 shrink-0" />
+              <span className="truncate">Toplu Dizayn</span>
             </span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5 shrink-0" />
           </button>
 
           <button
@@ -100,11 +139,11 @@ export const ParametricControls: React.FC<ParametricControlsProps> = ({
             onClick={onOpenErpModal}
             className="px-3 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-emerald-950 to-slate-900 hover:from-emerald-900 hover:to-slate-800 text-emerald-300 border border-emerald-800/60 flex items-center justify-between transition-all shadow-sm active:scale-95 cursor-pointer"
           >
-            <span className="flex items-center gap-1.5">
-              <Database className="w-4 h-4 text-emerald-400" />
-              <span>ERP MSSQL & BOM Transfer</span>
+            <span className="flex items-center gap-1.5 truncate">
+              <Database className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="truncate">ERP & BOM</span>
             </span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5 shrink-0" />
           </button>
         </div>
       </div>
@@ -119,16 +158,16 @@ export const ParametricControls: React.FC<ParametricControlsProps> = ({
           <button
             type="button"
             onClick={onOpenSpringTypeConfig}
-            className="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 hover:underline"
+            className="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 hover:underline cursor-pointer"
           >
-            <span>Parametreleri Düzenle ⚙️</span>
+            <span>Tipleri & Çapları Yönet ⚙️</span>
           </button>
         </div>
 
         <select
           value={springTypeId}
           onChange={(e) => onChange({ springTypeId: e.target.value })}
-          className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-blue-500"
+          className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
         >
           {availableTypes.map((type) => (
             <option key={type.id} value={type.id}>
@@ -137,13 +176,37 @@ export const ParametricControls: React.FC<ParametricControlsProps> = ({
           ))}
         </select>
 
-        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
-          <span>K-Faktörü: <strong className="text-cyan-300 font-mono">{currentType.kFactor.toFixed(2)}</strong></span>
-          <span>·</span>
-          <span>Ölü Boy Payı: <strong className="text-cyan-300 font-mono">{currentType.deadLengthMm} mm</strong></span>
-          <span>·</span>
-          <span>Max Basınç: <strong className="text-amber-300 font-mono">{currentType.maxPressureBar} Bar</strong></span>
-        </div>
+        {/* Active Diameter Rule Indicator if matched */}
+        {calc.activeDiameterRule ? (
+          <div className="bg-cyan-950/40 border border-cyan-800/60 rounded-lg p-2.5 text-[11px] text-cyan-200 flex flex-col gap-1">
+            <div className="flex items-center justify-between font-medium">
+              <span className="flex items-center gap-1 text-cyan-300">
+                <CheckCircle className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Ø{tubeOd}/Ø{rodOd} Çap Kuralı Aktif</span>
+              </span>
+              {calc.activeDiameterRule.note && (
+                <span className="text-[10px] text-slate-400 font-sans">
+                  {calc.activeDiameterRule.note}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center justify-between text-[10px] font-mono text-cyan-400">
+              <span>Özel K: <strong>{calc.kFactor.toFixed(2)}</strong></span>
+              <span>·</span>
+              <span>Ölü Boy: <strong>{calc.activeDiameterRule.deadLengthMm} mm</strong></span>
+              <span>·</span>
+              <span>Max P: <strong>{calc.activeDiameterRule.maxPressureBar} Bar</strong></span>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+            <span>K-Faktörü: <strong className="text-cyan-300 font-mono">{currentType.kFactor.toFixed(2)}</strong></span>
+            <span>·</span>
+            <span>Ölü Boy Payı: <strong className="text-cyan-300 font-mono">{currentType.deadLengthMm} mm</strong></span>
+            <span>·</span>
+            <span>Max Basınç: <strong className="text-amber-300 font-mono">{currentType.maxPressureBar} Bar</strong></span>
+          </div>
+        )}
       </div>
 
       {/* 2. GEOMETRİK ÖLÇÜLER */}

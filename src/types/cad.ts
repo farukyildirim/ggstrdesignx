@@ -17,7 +17,19 @@ export interface EndFittingItem {
   isCustom?: boolean;
 }
 
-export type SpringFormulaType = 'push' | 'pull' | 'lockable' | 'stainless' | 'damper';
+export type SpringFormulaType = 'push' | 'pull' | 'lockable' | 'stainless' | 'damper' | 'custom';
+
+export interface DiameterPairRule {
+  id: string;
+  tubeOd: number;         // Silindir/Tüp dış çapı (mm) örn. 15, 18, 22, 28, 40
+  rodOd: number;          // Mil çapı (mm) örn. 6, 8, 10, 14, 20
+  kFactor?: number;       // Bu çapa özel K-faktörü (F2/F1)
+  deadLengthMm?: number;  // Bu çapa özel ölü boy payı (mm)
+  maxPressureBar?: number;// Bu çapa özel azami iç basınç limiti (Bar)
+  maxForceN?: number;     // Bu mil çapı için azami burkulmasız kuvvet sınırı (N)
+  tubeWallMm?: number;    // Bu çapa özel silindir et kalınlığı (mm)
+  note?: string;          // Örn: "18/8 Standart Seri", "28/14 Ağır Hizmet"
+}
 
 export interface GasSpringTypeDefinition {
   id: string;
@@ -31,6 +43,8 @@ export interface GasSpringTypeDefinition {
   tempMinC: number;         // Operating temp min
   tempMaxC: number;         // Operating temp max
   materialGrade: string;    // e.g. "St 37-2 / C45 Chrome" or "AISI 316 Ti"
+  isCustom?: boolean;       // Kullanıcı tarafından eklenen özel tip
+  diameterRules?: DiameterPairRule[]; // Silindir ve mil çapına göre özelleştirilmiş kurallar
 }
 
 export interface GasSpringParams {
@@ -68,6 +82,39 @@ export interface CalculationResult {
   partNumber: string;
   reportHtml: string;
   springType: GasSpringTypeDefinition;
+  activeDiameterRule?: DiameterPairRule;
+}
+
+export interface DesignRevision {
+  revId: string; // e.g. "REV-01", "REV-02", "REV-A"
+  timestamp: string; // ISO date string
+  author: string; // Revizyonu yapan mühendis
+  notes: string; // Revizyon gerekçesi / değişiklik notları
+  params: GasSpringParams;
+  calcSnapshot: {
+    partNumber: string;
+    extLength: number;
+    stroke: number;
+    forceN: number;
+    tubeOd: number;
+    rodOd: number;
+    requiredPressureBar: number;
+    f2Force: number;
+    kFactor: number;
+    springTypeName: string;
+  };
+}
+
+export interface SavedDesign {
+  id: string;
+  code: string; // e.g. "DSG-001", "PRJ-2026-A"
+  name: string; // e.g. "Kabin Kapağı Amortisörü"
+  customerOrProject: string; // e.g. "Otomotiv Projesi #42"
+  createdAt: string;
+  updatedAt: string;
+  currentRevId: string; // e.g. "REV-02"
+  revisions: DesignRevision[];
+  tags: string[];
 }
 
 export interface ErpMssqlConfig {

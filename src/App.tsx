@@ -4,11 +4,14 @@ import {
   EndFittingItem,
   GasSpringTypeDefinition,
   ErpMssqlConfig,
+  SavedDesign,
+  DesignRevision,
 } from './types/cad';
 import {
   DEFAULT_FITTINGS,
   DEFAULT_GAS_SPRING_TYPES,
   DEFAULT_ERP_CONFIG,
+  DEFAULT_SAVED_DESIGNS,
 } from './utils/engineeringData';
 import { calculateGasSpringParams } from './utils/gasSpringMath';
 import { generateStepFile } from './utils/stepExporter';
@@ -22,7 +25,8 @@ import { FittingManagerModal } from './components/FittingManagerModal';
 import { SpringTypeConfigModal } from './components/SpringTypeConfigModal';
 import { BatchDesignAutomationModal } from './components/BatchDesignAutomationModal';
 import { ErpMssqlModal } from './components/ErpMssqlModal';
-import { Check, Download, AlertCircle, Layers, Database, Wrench, Sliders } from 'lucide-react';
+import { DesignVaultModal } from './components/DesignVaultModal';
+import { Check, Download, AlertCircle, Layers, Database, Wrench, Sliders, FolderGit2 } from 'lucide-react';
 
 const DEFAULT_PARAMS: GasSpringParams = {
   tubeOd: 18,
@@ -36,7 +40,7 @@ const DEFAULT_PARAMS: GasSpringParams = {
 };
 
 export default function App() {
-  // Persistence for Custom Fittings, Types, ERP Config
+  // Persistence for Custom Fittings, Types, ERP Config, and Saved Designs Vault
   const [availableFittings, setAvailableFittings] = useState<EndFittingItem[]>(() => {
     try {
       const saved = localStorage.getItem('gasspring_fittings');
@@ -64,6 +68,20 @@ export default function App() {
     }
   });
 
+  const [savedDesigns, setSavedDesigns] = useState<SavedDesign[]>(() => {
+    try {
+      const saved = localStorage.getItem('gasspring_designs_vault');
+      return saved ? JSON.parse(saved) : DEFAULT_SAVED_DESIGNS;
+    } catch {
+      return DEFAULT_SAVED_DESIGNS;
+    }
+  });
+
+  // Track currently active loaded design & rev
+  const [activeDesignId, setActiveDesignId] = useState<string | null>('dsg_001_cabinet');
+  const [activeRevId, setActiveRevId] = useState<string | null>('REV-02');
+  const [isDesignVaultOpen, setIsDesignVaultOpen] = useState<boolean>(false);
+
   useEffect(() => {
     try {
       localStorage.setItem('gasspring_fittings', JSON.stringify(availableFittings));
@@ -81,6 +99,17 @@ export default function App() {
       localStorage.setItem('gasspring_erp_config', JSON.stringify(erpConfig));
     } catch {}
   }, [erpConfig]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('gasspring_designs_vault', JSON.stringify(savedDesigns));
+    } catch {}
+  }, [savedDesigns]);
+
+  const currentActiveDesign = useMemo(
+    () => savedDesigns.find((d) => d.id === activeDesignId) || null,
+    [savedDesigns, activeDesignId]
+  );
 
   // Main Parameter & Viewport State
   const [params, setParams] = useState<GasSpringParams>(DEFAULT_PARAMS);
@@ -148,12 +177,69 @@ export default function App() {
   };
 
   // Spring Type Handlers
+  const handleAddSpringType = (newType: GasSpringTypeDefinition) => {
+    setAvailableTypes((prev) => [...prev, newType]);
+    setParams((prev) => ({ ...prev, springTypeId: newType.id }));
+    setGenerationToast(`"${newType.name}" amortisör tipi oluşturuldu ve seçildi.`);
+    setTimeout(() => setGenerationToast(null), 3500);
+  };
+
+  const handleDeleteSpringType = (id: string) => {
+    setAvailableTypes((prev) => prev.filter((t) => t.id !== id));
+    if (params.springTypeId === id) {
+      setParams((prev) => ({ ...prev, springTypeId: DEFAULT_GAS_SPRING_TYPES[0].id }));
+    }
+  };
+
   const handleUpdateSpringType = (updated: GasSpringTypeDefinition) => {
     setAvailableTypes((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
   };
 
   const handleResetSpringTypes = () => {
     setAvailableTypes(DEFAULT_GAS_SPRING_TYPES);
+  };
+
+  // Design Vault & Revision Management Handlers
+  const handleLoadDesignRevision = (design: SavedDesign, rev: DesignRevision) => {
+    setParams({ ...rev.params });
+    setActiveDesignId(design.id);
+    setActiveRevId(rev.revId);
+    setGenerationToast(`"${design.name}" (${rev.revId}) CAD motoruna yüklendi.`);
+    setTimeout(() => setGenerationToast(null), 4000);
+  };
+
+  const handleSaveNewDesign = (newDesign: SavedDesign) => {
+    setSavedDesigns((prev) => [newDesign, ...prev]);
+    setActiveDesignId(newDesign.id);
+    setActiveRevId(newDesign.currentRevId);
+    setGenerationToast(`"${newDesign.name}" yeni tasarım olarak başarıyla kaydedildi!`);
+    setTimeout(() => setGenerationToast(null), 4000);
+  };
+
+  const handleUpdateDesign = (updated: SavedDesign) => {
+    setSavedDesigns((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
+    setActiveDesignId(updated.id);
+    setActiveRevId(updated.currentRevId);
+    setGenerationToast(`"${updated.name}" için yeni revizyon (${updated.currentRevId}) oluşturuldu.`);
+    setTimeout(() => setGenerationToast(null), 4000);
+  };
+
+  const handleDeleteDesign = (id: string) => {
+    setSavedDesigns((prev) => prev.filter((d) => d.id !== id));
+    if (activeDesignId === id) {
+      setActiveDesignId(null);
+      setActiveRevId(null);
+    }
+  };
+
+  const handleImportDesigns = (imported: SavedDesign[]) => {
+    setSavedDesigns(imported);
+    if (imported.length > 0) {
+      setActiveDesignId(imported[0].id);
+      setActiveRevId(imported[0].currentRevId);
+    }
+    setGenerationToast(`${imported.length} adet dizayn içe aktarıldı.`);
+    setTimeout(() => setGenerationToast(null), 4000);
   };
 
   // Batch Automation Load to Workbench
@@ -203,6 +289,7 @@ export default function App() {
         onOpenSpringTypeConfig={() => setIsTypeModalOpen(true)}
         onOpenBatchAutomation={() => setIsBatchModalOpen(true)}
         onOpenErpModal={() => setIsErpModalOpen(true)}
+        onOpenDesignVault={() => setIsDesignVaultOpen(true)}
         onDownloadStep={handleDownloadStep}
         isValid={calc.isValid}
       />
@@ -217,17 +304,28 @@ export default function App() {
               <span>Parametrik Gazlı Amortisör CAD & İmalat Yönetim Motoru</span>
             </h1>
             <p className="text-xs md:text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Özelleştirilebilir uç mafsalları, amortisör tipi ve formül yönetimi, canlı 3D montaj,{' '}
-              <strong className="text-cyan-400">ERP MSSQL BOM aktarımı</strong> ve{' '}
-              <strong className="text-cyan-400">Toplu Dizayn Otomasyonu</strong> ile tam donanımlı mühendislik çalışma ortamı.
+              Özelleştirilebilir uç mafsalları, amortisör tipi ve silindir/mil çapı formül kuralları,{' '}
+              <strong className="text-cyan-400">Dizayn Revizyon Yönetimi</strong>,{' '}
+              <strong className="text-emerald-400">ERP MSSQL BOM aktarımı</strong> ve{' '}
+              <strong className="text-cyan-400">Toplu Dizayn Otomasyonu</strong>.
             </p>
           </div>
 
           {/* Quick status bar */}
-          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-400 shrink-0">
+            <button
+              onClick={() => setIsDesignVaultOpen(true)}
+              className="px-2.5 py-1 rounded-lg bg-blue-950/80 border border-blue-700/80 hover:border-blue-500 text-blue-300 font-medium transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              <FolderGit2 className="w-3.5 h-3.5 text-blue-400" />
+              <span>
+                {currentActiveDesign ? `${currentActiveDesign.code} (${activeRevId})` : 'Dizayn Arşivi'}
+              </span>
+            </button>
+
             <button
               onClick={() => setIsBatchModalOpen(true)}
-              className="px-2.5 py-1 rounded bg-slate-900 border border-slate-700 hover:border-cyan-500 text-cyan-300 font-medium transition-colors flex items-center gap-1.5"
+              className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 hover:border-cyan-500 text-cyan-300 font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Toplu Dizayn</span>
@@ -235,14 +333,14 @@ export default function App() {
 
             <button
               onClick={() => setIsErpModalOpen(true)}
-              className="px-2.5 py-1 rounded bg-slate-900 border border-slate-700 hover:border-emerald-500 text-emerald-300 font-medium transition-colors flex items-center gap-1.5"
+              className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 hover:border-emerald-500 text-emerald-300 font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Database className="w-3.5 h-3.5" />
               <span>ERP MSSQL</span>
             </button>
 
-            <span className="text-slate-600">·</span>
-            <span className="font-mono text-cyan-400">{calc.partNumber}</span>
+            <span className="text-slate-600 hidden sm:inline">·</span>
+            <span className="font-mono text-cyan-400 text-xs hidden sm:inline">{calc.partNumber}</span>
           </div>
         </div>
 
@@ -256,13 +354,13 @@ export default function App() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleDownloadStep}
-                className="px-2.5 py-1 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded font-medium transition-colors"
+                className="px-2.5 py-1 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded font-medium transition-colors cursor-pointer"
               >
                 .STEP İndir
               </button>
               <button
                 onClick={handleDownloadStl}
-                className="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-medium transition-colors"
+                className="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-medium transition-colors cursor-pointer"
               >
                 .STL İndir
               </button>
@@ -286,6 +384,9 @@ export default function App() {
               onOpenSpringTypeConfig={() => setIsTypeModalOpen(true)}
               onOpenBatchAutomation={() => setIsBatchModalOpen(true)}
               onOpenErpModal={() => setIsErpModalOpen(true)}
+              onOpenDesignVault={() => setIsDesignVaultOpen(true)}
+              activeDesignName={currentActiveDesign?.name}
+              activeRevCode={activeRevId || undefined}
             />
           </div>
 
@@ -350,7 +451,7 @@ export default function App() {
         onUpdateFitting={handleUpdateFitting}
       />
 
-      {/* Spring Type Config Modal */}
+      {/* Spring Type Config Modal with Diameter Rules & Custom Type Addition */}
       <SpringTypeConfigModal
         isOpen={isTypeModalOpen}
         onClose={() => setIsTypeModalOpen(false)}
@@ -358,6 +459,8 @@ export default function App() {
         selectedTypeId={params.springTypeId}
         onSelectType={(id) => handleParamChange({ springTypeId: id })}
         onUpdateType={handleUpdateSpringType}
+        onAddType={handleAddSpringType}
+        onDeleteType={handleDeleteSpringType}
         onResetDefaults={handleResetSpringTypes}
       />
 
@@ -382,6 +485,24 @@ export default function App() {
         availableFittings={availableFittings}
       />
 
+      {/* Design Vault & Revision Management Modal */}
+      <DesignVaultModal
+        isOpen={isDesignVaultOpen}
+        onClose={() => setIsDesignVaultOpen(false)}
+        savedDesigns={savedDesigns}
+        activeDesignId={activeDesignId}
+        activeRevId={activeRevId}
+        currentParams={params}
+        currentCalc={calc}
+        availableFittings={availableFittings}
+        availableTypes={availableTypes}
+        onLoadDesignRevision={handleLoadDesignRevision}
+        onSaveNewDesign={handleSaveNewDesign}
+        onUpdateDesign={handleUpdateDesign}
+        onDeleteDesign={handleDeleteDesign}
+        onImportDesigns={handleImportDesigns}
+      />
+
       {/* Engineering Footer */}
       <footer className="mt-auto border-t border-slate-900 bg-slate-950 px-6 py-4 text-center text-xs text-slate-500">
         <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
@@ -389,7 +510,7 @@ export default function App() {
             Parametrik Gazlı Amortisör CAD Motoru · CadQuery & Three.js Assembly Engine
           </span>
           <span className="font-mono text-[11px] text-slate-400">
-            ISO 10303-21 STEP AP214 · STL Mesh · ERP MSSQL Entegrasyonu · Toplu Dizayn Otomasyonu
+            ISO 10303-21 STEP AP214 · STL Mesh · Dizayn Revizyon Kontrolü · ERP MSSQL BOM
           </span>
         </div>
       </footer>

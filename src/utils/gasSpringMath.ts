@@ -19,8 +19,16 @@ export function calculateGasSpringParams(
   const tubeFittingOffset = tubeFitting.offsetLenMm || 20.0;
   const totalFittingAllowance = rodFittingOffset + tubeFittingOffset;
 
+  // Check if a diameter-pairing specific rule exists for (tubeOd, rodOd)
+  const activeDiameterRule = springType.diameterRules?.find(
+    (r) => r.tubeOd === tubeOd && r.rodOd === rodOd
+  );
+
   // Dead length (seal package, guide, base plug)
-  const deadLength = params.customDeadLength !== undefined ? params.customDeadLength : springType.deadLengthMm;
+  const baseDeadLength = activeDiameterRule?.deadLengthMm !== undefined
+    ? activeDiameterRule.deadLengthMm
+    : springType.deadLengthMm;
+  const deadLength = params.customDeadLength !== undefined ? params.customDeadLength : baseDeadLength;
 
   // Closed length
   const closedLength = extLength - stroke;
@@ -42,6 +50,13 @@ export function calculateGasSpringParams(
     );
   }
 
+  // Diameter-specific max force limit check (Euler/mechanical capacity)
+  if (activeDiameterRule?.maxForceN && forceN > activeDiameterRule.maxForceN) {
+    warnings.push(
+      `Çap Güvenlik Uyarısı: Ø${tubeOd}/Ø${rodOd} kombinasyonu için tanımlı azami güvenli itme kuvveti (${activeDiameterRule.maxForceN} N) aşıldı! Seçilen: ${forceN} N.`
+    );
+  }
+
   // Slenderness / Euler Buckling Warning
   const slendernessRatio = (stroke * 1.5) / (rodOd / 4);
   if (slendernessRatio > 120 && forceN > 500) {
@@ -52,7 +67,9 @@ export function calculateGasSpringParams(
 
   // Cross section areas
   const rodAreaMm2 = Math.PI * Math.pow(rodOd / 2, 2);
-  const tubeWall = springType.formulaType === 'stainless' ? 1.75 : 1.5;
+  const tubeWall = activeDiameterRule?.tubeWallMm !== undefined
+    ? activeDiameterRule.tubeWallMm
+    : (springType.formulaType === 'stainless' ? 1.75 : 1.5);
   const tubeInnerD = tubeOd - (2 * tubeWall);
   const tubeAreaMm2 = Math.PI * Math.pow(tubeInnerD / 2, 2);
 
@@ -70,14 +87,21 @@ export function calculateGasSpringParams(
     requiredPressureBar = (forceN / rodAreaMm2) * 10;
   }
 
-  if (requiredPressureBar > springType.maxPressureBar) {
+  const maxAllowedPressure = activeDiameterRule?.maxPressureBar !== undefined
+    ? activeDiameterRule.maxPressureBar
+    : springType.maxPressureBar;
+
+  if (requiredPressureBar > maxAllowedPressure) {
     warnings.push(
-      `Yüksek Basınç Uyarısı: Gerekli iç gaz basıncı (${requiredPressureBar.toFixed(1)} Bar), bu tip için izin verilen azami basıncı (${springType.maxPressureBar} Bar) aşıyor! Mil çapını büyüterek basıncı düşürünüz.`
+      `Yüksek Basınç Uyarısı: Gerekli iç gaz basıncı (${requiredPressureBar.toFixed(1)} Bar), bu kombinasyon için izin verilen azami basıncı (${maxAllowedPressure} Bar) aşıyor! Mil çapını büyüterek basıncı düşürünüz.`
     );
   }
 
   // Progression factor K
-  const kFactor = params.customKFactor !== undefined ? params.customKFactor : springType.kFactor;
+  const baseKFactor = activeDiameterRule?.kFactor !== undefined
+    ? activeDiameterRule.kFactor
+    : springType.kFactor;
+  const kFactor = params.customKFactor !== undefined ? params.customKFactor : baseKFactor;
   const f2Force = forceN * kFactor;
 
   // Stored Energy
@@ -154,6 +178,7 @@ export function calculateGasSpringParams(
     partNumber,
     reportHtml,
     springType,
+    activeDiameterRule,
   };
 }
 

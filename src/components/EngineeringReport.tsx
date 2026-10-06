@@ -438,6 +438,30 @@ export const EngineeringReport: React.FC<EngineeringReportProps> = ({ params, ca
       {/* Tab 1: Mühendislik Raporu (Exact matches to Gradio report) */}
       {activeTab === 'report' && (
         <div className="flex flex-col gap-4">
+          {/* Active Diameter Pairing Rule Notification */}
+          {calc.activeDiameterRule && (
+            <div className="bg-blue-950/40 border border-blue-800/60 rounded-lg p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs text-blue-200">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-blue-300">
+                  ⚙️ Silindir & Mil Çapına Özel Parametreler (Ø{params.tubeOd}/Ø{params.rodOd}):
+                </span>
+                <span>
+                  Ölü Boy: <strong className="text-white font-mono">{calc.activeDiameterRule.deadLengthMm}mm</strong> ·
+                  K: <strong className="text-white font-mono">{calc.kFactor.toFixed(2)}</strong> ·
+                  Max P: <strong className="text-amber-300 font-mono">{calc.activeDiameterRule.maxPressureBar} Bar</strong>
+                  {calc.activeDiameterRule.maxForceN && (
+                    <span> · Max F: <strong className="text-emerald-300 font-mono">{calc.activeDiameterRule.maxForceN} N</strong></span>
+                  )}
+                </span>
+              </div>
+              {calc.activeDiameterRule.note && (
+                <span className="text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                  {calc.activeDiameterRule.note}
+                </span>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="bg-slate-950/70 border border-slate-800/80 rounded-lg p-3">
               <span className="text-[11px] text-slate-400 uppercase tracking-wide block font-sans">

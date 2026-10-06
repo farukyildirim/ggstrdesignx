@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Layers, Database } from 'lucide-react';
+import { Download, Layers, FolderGit2 } from 'lucide-react';
 
 interface NavbarProps {
   onOpenDrawing: () => void;
@@ -7,6 +7,7 @@ interface NavbarProps {
   onOpenSpringTypeConfig: () => void;
   onOpenBatchAutomation: () => void;
   onOpenErpModal: () => void;
+  onOpenDesignVault: () => void;
   onDownloadStep: () => void;
   isValid: boolean;
 }
@@ -17,6 +18,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenSpringTypeConfig,
   onOpenBatchAutomation,
   onOpenErpModal,
+  onOpenDesignVault,
   onDownloadStep,
   isValid,
 }) => {
@@ -30,35 +32,42 @@ export const Navbar: React.FC<NavbarProps> = ({
         </a>
       </div>
 
-      {/* Zone 2: 5 clean text navigation links */}
-      <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-slate-300">
+      {/* Zone 2: Clean text navigation links */}
+      <nav className="hidden lg:flex items-center gap-5 text-xs font-medium text-slate-300">
+        <button
+          onClick={onOpenDesignVault}
+          className="hover:text-cyan-300 transition-colors text-left flex items-center gap-1.5 text-cyan-400 font-semibold cursor-pointer"
+        >
+          <FolderGit2 className="w-3.5 h-3.5" />
+          <span>Dizayn Arşivi & Revizyonlar</span>
+        </button>
         <button
           onClick={onOpenSpringTypeConfig}
-          className="hover:text-white transition-colors text-left"
+          className="hover:text-white transition-colors text-left cursor-pointer"
         >
-          Amortisör Tipleri
+          Amortisör Tipleri & Çaplar
         </button>
         <button
           onClick={onOpenFittingManager}
-          className="hover:text-white transition-colors text-left"
+          className="hover:text-white transition-colors text-left cursor-pointer"
         >
           Uç Bağlantıları
         </button>
         <button
           onClick={onOpenBatchAutomation}
-          className="hover:text-cyan-300 transition-colors text-left text-cyan-400 font-semibold"
+          className="hover:text-cyan-300 transition-colors text-left cursor-pointer"
         >
-          Toplu Dizayn Otomasyonu
+          Toplu Dizayn
         </button>
         <button
           onClick={onOpenErpModal}
-          className="hover:text-emerald-300 transition-colors text-left text-emerald-400 font-semibold"
+          className="hover:text-emerald-300 transition-colors text-left text-emerald-400 font-semibold cursor-pointer"
         >
           ERP MSSQL & BOM
         </button>
         <button
           onClick={onOpenDrawing}
-          className="hover:text-white transition-colors text-left"
+          className="hover:text-white transition-colors text-left cursor-pointer"
         >
           2D Teknik Resim
         </button>
@@ -67,11 +76,11 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Zone 3: Primary action buttons */}
       <div className="flex items-center gap-2.5">
         <button
-          onClick={onOpenBatchAutomation}
-          className="px-3 py-1.5 text-xs font-medium text-cyan-300 bg-cyan-950/60 hover:bg-cyan-900/60 rounded-lg border border-cyan-800/80 transition-colors hidden sm:flex items-center gap-1.5"
+          onClick={onOpenDesignVault}
+          className="px-3 py-1.5 text-xs font-medium text-cyan-300 bg-cyan-950/70 hover:bg-cyan-900/80 rounded-lg border border-cyan-800/80 transition-colors flex items-center gap-1.5 cursor-pointer"
         >
-          <Layers className="w-3.5 h-3.5" />
-          <span>Toplu Dizayn</span>
+          <FolderGit2 className="w-3.5 h-3.5" />
+          <span>Dizayn Arşivi</span>
         </button>
         <button
           onClick={onDownloadStep}
